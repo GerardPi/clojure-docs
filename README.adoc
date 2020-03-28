@@ -24,7 +24,9 @@ This reason for this document is mainly for myself so I don't have to remember a
   ** https://www.booleanknot.com/blog/2016/12/20/code-is-data.html
 
 
-== DI libraries / frameworks
+== Libraries / frameworks
+
+=== DI / IoC
 
 . https://github.com/weavejester/integrant
   ** Is used in Duct
@@ -41,7 +43,7 @@ This reason for this document is mainly for myself so I don't have to remember a
 Some thoughts on Component and Mount:
 https://yogthos.net/posts/2016-01-19-ContrastingComponentAndMount.html
 
-== Libraries / frameworks for building web-applications
+=== For building web-applications
  
 . https://github.com/weavejester/compojure
 . https://github.com/juxt/yada
@@ -59,7 +61,7 @@ https://yogthos.net/posts/2016-01-19-ContrastingComponentAndMount.html
 . http://clojure-liberator.github.io/liberator/
   ** Primarily for creating a RESTful API
 
-=== Routing libraries
+=== Routing
 
 . https://github.com/metosin/reitit
 . https://github.com/juxt/bidi
@@ -85,7 +87,7 @@ https://yogthos.net/posts/2016-01-19-ContrastingComponentAndMount.html
 . https://www.slant.co/topics/11929/~ide-for-clojure
 
 == Build tooling
-
+. https://maven.apache.org
 . https://clojure.org/reference/deps_and_cli
   ** https://clojure.org/guides/deps_and_cli 
 . https://leiningen.org/
