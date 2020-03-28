@@ -1,0 +1,113 @@
+= Clojure Documents
+:numbered:
+:toc:
+
+== Introduction
+
+This is information and links about the Clojure programming language.
+This reason for this document is mainly for myself so I don't have to remember all of these details.
+
+== Why is Clojure a nice idea
+
+. State and identity are not conflated
+  ** Usually everything you do in Clojure is immutable
+  ** That is usually not a problem thanks to structural sharing
+  ** When mutability really is required (no place oriented programming)
+  ** When you must have mutable stuff, it can be managed really well:
+     *** Atoms
+     *** Agents
+     *** Refs and Software Transactional Memory
+     *** Locks
+     *** Future, Promise
+     *** CSP (core.async)
+. Code is data and data is code (homoiconicity)
+  ** https://www.booleanknot.com/blog/2016/12/20/code-is-data.html
+
+
+== DI libraries / frameworks
+
+. https://github.com/weavejester/integrant
+  ** Is used in Duct
+. https://github.com/tolitius/mount
+  ** Is used in Luminus 
+. https://github.com/aroemers/mount-lite
+  ** http://aroemers.github.io/mount-lite/
+  ** https://github.com/dryewo/mount-lite-example
+  ** https://cljdoc.org/d/functionalbytes/mount-lite/
+. https://github.com/aroemers/system
+. https://github.com/stuartsierra/component
+. https://github.com/vspinu/commix
+
+Some thoughts on Component and Mount:
+https://yogthos.net/posts/2016-01-19-ContrastingComponentAndMount.html
+
+== Libraries / frameworks for building web-applications
+ 
+. https://github.com/weavejester/compojure
+. https://github.com/juxt/yada
+  ** https://juxt.pro/yada/manual/index.html
+  ** Yada used to use Component, but switched to Mount
+. https://luminusweb.com/
+  ** Uses Mount
+. https://github.com/duct-framework/duct
+  ** Uses Integrant
+  ** https://github.com/duct-framework/duct/wiki/Getting-Started
+  ** https://circleci.com/blog/build-a-clojure-web-app-using-duct/
+. http://pedestal.io/
+. http://arachne-framework.org/
+  ** No longer maintained
+. http://clojure-liberator.github.io/liberator/
+  ** Primarily for creating a RESTful API
+
+=== Routing libraries
+
+. https://github.com/metosin/reitit
+. https://github.com/juxt/bidi
+. https://github.com/juxt/yada
+. https://github.com/weavejester/ataraxy
+. https://github.com/weavejester/compojure
+. https://github.com/ring-clojure/ring
+
+
+== Editors with Clojure support
+
+. Intellij IDEA with Cursive plugin
+  ** I use IDEA on a daily basis, with a Vim plugin.
+. Emacs
+  ** Since Emacs itself is programmed in a Lisp, Clojure it seems only natrural to use it as a development environment for Clojure.
+  ** Since I'm used to VIM, but Emacs is a bit more luxurious than VIM, I occasinally use Emacs. But I use the Spacemacs flavoured Emacs with the Cider plugin in Evil mode: https://develop.spacemacs.org/layers/+lang/clojure/README.html
+  ** Cider: https://github.com/clojure-emacs/cider
+. Vim
+  ** Can be used to start Clojure repl from VIM.
+. http://lighttable.com/
+  ** In ClojureScript, but no longer maintained?
+. https://sekao.net/lightmod/ and https://sekao.net/nightcode/
+. https://www.slant.co/topics/11929/~ide-for-clojure
+
+== Build tooling
+
+. https://clojure.org/reference/deps_and_cli
+  ** https://clojure.org/guides/deps_and_cli 
+. https://leiningen.org/
+. https://boot-clj.com/ 
+. https://github.com/juxt/mach
+. https://github.com/juxt/pack.alpha
+
+== References
+
+. Hosted on the JVM: https://www.clojure.org
+  ** https://clojure.org/api/cheatsheet
+. Hosted by JavaScript: https://clojurescript.org
+. Hosted by .Net runtimes (CLR): https://github.com/clojure/clojure-clr
+. https://search.maven.org/
+  ** Get Clojure from this Maven repository
+. https://clojars.org/
+  ** Rest of the Clojure libraries can be found here
+. https://oli.me.uk/clojure-projects-from-scratch/
+. https://tirkarthi.github.io/clojure/2017/12/11/clj-tools-repl.html
+. https://curiousprogrammer.net/
+. https://www.booleanknot.com/
+  ** Website for author of may Clojure libraries, ao: Integrant, Compojure and Duct.
+  https://clojuredays.org/
+. https://www.clojure-toolbox.com/
+. A pretty big Clojure code base: https://github.com/akvo/akvo-lumen
