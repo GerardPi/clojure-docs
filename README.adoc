@@ -49,78 +49,9 @@ Downside of Clojure: it's pretty strange coming from any mainstream imperative p
 
 Some thoughts on Component and Mount:
 https://yogthos.net/posts/2016-01-19-ContrastingComponentAndMount.html
+An application that used both Mount and Integrant:
+https://github.com/serioga/webapp-clojure-2020
 
-=== For building web-applications
- 
-. https://github.com/weavejester/compojure
-. https://github.com/juxt/yada
-  ** https://juxt.pro/yada/manual/index.html
-  ** Yada used to use Component, but switched to Mount
-. https://luminusweb.com/
-  ** Uses Mount
-. https://github.com/duct-framework/duct
-  ** Uses Integrant
-  ** https://github.com/duct-framework/duct/wiki/Getting-Started
-  ** https://circleci.com/blog/build-a-clojure-web-app-using-duct/
-. http://pedestal.io/
-. http://arachne-framework.org/
-  ** No longer maintained
-. http://clojure-liberator.github.io/liberator/
-  ** Primarily for creating a RESTful API
-
-=== Routing
-
-. https://github.com/metosin/reitit
-. https://github.com/juxt/bidi
-. https://github.com/juxt/yada
-. https://github.com/weavejester/ataraxy
-. https://github.com/weavejester/compojure
-. https://github.com/ring-clojure/ring
-
-=== Dealing with relational database
-
-
-. https://github.com/jkk/honeysql
-. https://github.com/metabase/toucan
-  ** On top of HoneySQL
-. https://github.com/korma/Korma
-  ** Clojure DSL for dealing with your database
-. https://www.hugsql.org/
-  ** Embraces SQL and generates Clojure code from SQL files.
-. 
-
-== Editors with Clojure support
-
-. Intellij IDEA with Cursive plugin
-  ** I use IDEA on a daily basis, with a Vim plugin.
-. Emacs
-  ** Since Emacs itself is programmed in a Lisp, Clojure it seems only natrural to use it as a development environment for Clojure.
-  ** Being a VIM user, and Emacs being a bit more luxurious than VIM, I occasinally use Emacs. But I use the Spacemacs flavoured Emacs with the Cider plugin in Evil mode: https://develop.spacemacs.org/layers/+lang/clojure/README.html
-  ** Spacemacs Clojure Quick Ref: https://practicalli.github.io/spacemacs/spacemacs-basics/emacs-quick-reference.html
-  ** Spacemacs Basics: https://practicalli.github.io/spacemacs/spacemacs-basics/
-  ** Cider: https://github.com/clojure-emacs/cider
-. Vim
-  ** Can be used to start Clojure repl from VIM.
-. http://lighttable.com/
-  ** In ClojureScript, but no longer maintained?
-. https://sekao.net/lightmod/ and https://sekao.net/nightcode/
-. https://www.slant.co/topics/11929/~ide-for-clojure
-
-== Build tooling
-. https://maven.apache.org
-. https://clojure.org/reference/deps_and_cli
-  ** https://clojure.org/guides/deps_and_cli 
-. https://leiningen.org/
-. https://boot-clj.com/ 
-. https://github.com/juxt/mach
-. https://github.com/juxt/pack.alpha
-
-== Nice stuff
-
-PS: Obviously, this list is incomplete: if you stuff about Clojure is not in this list, that does not mean that it is stuff is not nice :-)
-
-. https://github.com/spacegangster/page-renderer
-. A pretty big Clojure code base: https://github.com/akvo/akvo-lumen
 
 == References
 
