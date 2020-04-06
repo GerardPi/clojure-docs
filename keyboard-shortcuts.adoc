@@ -1,0 +1,47 @@
+= Keyboard Shortcuts
+:numbered:
+:toc:
+
+== Introduction
+
+Just a bunch of keyboard shortcuts.
+
+=== 
+
+Note that this table does not include standard XFCE4 keyboard shortcuts.
+
+|===
+| Key OSX | Keys Linux / Windows / XFCE4 | Effect
+
+| ⌘-q
+| alt-f4
+| quit application
+| ⌘-w
+| ctrl-f4 w
+| quit tab or windows within an application
+| ⌘-space
+| ⊞-space 
+| popup application or document finder
+| ⌘-n
+| ctrl-N
+| create a new window or document
+| ⌘-t
+| ctrl-t
+| create a new tab (e.g. in Firefox)
+| ⌘-tab
+| alt-tab
+| popup list of open applications 
+|
+| ⊞-e
+| open file manager
+|
+| ⊞-f
+| open firefox
+|
+| ⊞-t
+| open terminal
+|===
+
+* ⊞ = Windows key (aka Super)
+* ⌘ = Cmd key (Mac OSX)
+
