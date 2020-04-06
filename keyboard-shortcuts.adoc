@@ -11,7 +11,7 @@ Just a bunch of keyboard shortcuts.
 Note that this table does not include standard XFCE4 keyboard shortcuts.
 
 |===
-| Key OSX | Keys Linux / Windows / XFCE4 | Effect
+| Key OSX | Keys Linux / XFCE4 | Effect
 
 | ⌘-q
 | alt-f4
@@ -23,7 +23,7 @@ Note that this table does not include standard XFCE4 keyboard shortcuts.
 | ⊞-space 
 | popup application or document finder
 | ⌘-n
-| ctrl-N
+| ctrl-n
 | create a new window or document
 | ⌘-t
 | ctrl-t
@@ -42,6 +42,7 @@ Note that this table does not include standard XFCE4 keyboard shortcuts.
 | open terminal
 |===
 
+* ..-x = hold the .. key (⊞, ctrl, alt or ⌘) and press the key key after the hypen as indicated in the table
 * ⊞ = Windows key (aka Super)
 * ⌘ = Cmd key (Mac OSX)
 
