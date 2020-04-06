@@ -1,0 +1,348 @@
+= RESTful API over HTTP Design
+:numbered:
+:toc:
+
+== Introduction
+
+Yet another document with guidelines for desinging a RESTful API over HTTP.
+
+https://en.wikipedia.org/wiki/Representational_state_transfer[Representation State Transfer] was _invented_ by Roy Fielding.
+
+It is a style in software architecture. 
+It usually implemented using HTTP, but is not tied to https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol[HTTP]
+or any other https://en.wikipedia.org/wiki/Application_layer[application protocol].
+
+This document only talks about applying REST API style for HTTP.
+
+.Implementing a RESTful API properly is:
+. Hard as https://www.infoq.com/articles/tilkov-rest-doubts[developer usually have all kinds of doubts about it].
+. Making your API RESTful does not make the implementation of your API easier or cheaper.
+. Beneficial for users and maintainers.
+
+.Benefits to be reaped when using RESTful APIs over HTTP:
+. Your are using a well known protocol. Most developers know something about RESTful APIs.
+. An infrastructure and all kinds of security mechanisms already exists.
+. Thinking about (designing) what you are actually exposing via REST APIs may improve the quality of your systems.
+. It may encourage re-use: combine existing from existing APIs in new interesting ways.
+
+This documument was created because the author has found that creating RESTful API is not trivial,
+and I just could not resist adding another guideline to the many already present.
+
+NOTE: Following this document does not imply that you're designing your API properly.
+It may, however, point you in the right direction.
+
+== What characterizes a RESTful API
+
+.A RESTful API:
+. is a client-server based system: clients and servers have distinct parts to play 
+. conforms to a Uniform interface: 
+  .. Identification of a resource
+  .. Manipulation of resources through representations
+  .. Self-descriptive messages
+  .. Hypermedia as the engine of state (https://en.wikipedia.org/wiki/HATEOAS[HATEOAS])
+     *** This makes assembling URLs on the client-side something of the past.
+     *** Pages include links to next and previous page when fetching all resources of a type as a series of pages.
+. consists of a layered system
+. may use cache
+. is stateless: There may be state in a database server-side, there is state in the client, but the backend that exposes the RESTful API is stateless.
+. usually uses code-on-demand
+  * For example: JavaScript, and formerly Java Applets and Flash.
+
+== Some guidelines
+
+These should be guidelines that are never ignored.
+Ignoring these guidelines does not mean that your application will not work. No problem there.
+Like in programming, you can even make a messy code base do exactly what you want.
+
+Ignoring these guidelines simply means that your application was not implemented following these guidelines.
+When expecting the application to have an API that is RESTful, people will just be surprised
+and probably even confused when looking at the implementation for whatever reason.
+
+.Adhering to the guidelines means that:
+. common practices (caching, security, scaling, architecture) can be used to improve your system
+. less time will be lost when trying to comprehend the API and the source code
+. the application possibly is more robust because everything is precisely where you expect it to be
+  ** although this can not be proven easily, I think it is a way to _make it obvious there are no deficiences_ as opposed to _making it so complex that there are no obvious deficiencies_.
+. the user that combines the URLs with HTTP methods to use your REST API has less surprises
+  .. the HTTP status code is used appropriately
+  .. the body in responses indicate what is going on
+  .. when hypermedia are used, the information in the response will always actually help and never expects the consumer of the API to assemble it's own URLs
+
+=== URL
+
+. Forward slash indicates hierarchical structure of resources. No trailing slash though.
+. Use hyphens, not underscores to improve readability. No dots. No file extensions.
+  ** File extensions imply the form of the resources, which should be dictated by the content-type.
+. Only use lower case.
+. Separate domain
+  ** Using a infix like `/api/` in the path of your URL like `somedomain.com/api/pluralforsomeresource` makes clear that this part of your application is where the RESTful API is located. However, the URLs are all polluted with that infix.
+  ** it is better to use a whole separate domain like `api.somedomain.com/someresource`.
+    *** It is clear where to look for URLs that point at the resources. The part indicating that this is a REST api is now part of the domain.
+. Do not use verbs in your URL. Only nouns.
+. A URL can point to two different types of things:
+  . Collection: Server managed directory of resources. This usually is the name in the URL preceeding the ID for a resource:
+    * URL for a collection: `http://somedomain.com/api/bikes`
+  . Resource: Like an object instance,  database record, or some part thereof. Includes fields with values, or just consists of a field with a value. Examples:
+    .. A bike in a collection of bikes: http://somedomain.com/api/bikes/1234
+       Note that _1234_ is the identifier for a specific bike.
+    .. A player in team http://somedomain.com/api/teams/sparta/players/somename
+       Note that _sparta_ is the identifier for a specific team and that _somename_ is the identifier for a specic player.
+
+=== Not just CRUD over HTTP
+
+A RESTful API is not just CRUD over HTTP.
+
+.You can create a bunch of RESTful APIs for your database records from very little code using these libraries:
+* https://spring.io/projects/spring-data[Spring Data]
+* https://spring.io/projects/spring-hateoas[Spring HATEOAS]
+* https://spring.io/projects/spring-data-rest[Spring Data Rest]
+
+however,
+https://thoughts-on-java.org/dont-expose-entities-in-api[you should not do that].
+
+=== Hypermedia
+
+Level 3 https://www.martinfowler.com/articles/richardsonMaturityModel.html[of the Richardson Maturity Model]
+with hypermedia controls should be the target.
+
+This means ideally that the client of the API should not assemble URLs
+
+You can use libraries to assemble URLs for you, like
+https://spring.io/projects/spring-hateoas[Spring HATEOAS],
+as long as you realise that you should not just do CRUD over HTTP.
+
+
+=== Query parameters
+
+Query parameters in a URL are not a part of the URL that points at one resource and are usually applied to collection URLs.
+They are used for modifying the response of the server in some way.
+
+==== Filtering
+
+When trying to fetch all players for a team, instead of this URL
+
+     http://somedomain.com/api/teams/sparta/players/somename
+
+this URL can be used:
+
+     http://somedomain.com/api/players/somename?team=sparta
+
+This is a way to keep the URL pointing at some resource simpler.
+This URL can not be used for anything else but GET.
+Trying to change a resource will still involve getting hold of a URL that points at one resource and then using that URL in a POST, PUT, PATCH or DELETE.
+
+==== Paging
+
+Fetching resources in a collection may result in too many for one response.
+Use some paging in that case.
+The response should then contain information about the page at hand.
+Preferably, it contains hypermedia links (as Level 3 indicates) to previous, next and maybe first and last page.
+
+This implies that the data in a response may not be exactly the same as the data in a request.
+Do not pay to much attention to this what seems to be a contradiction.
+
+Paging can only be used for GET requests.
+
+=== HTTP status codes
+
+. Don't just return "OK" whatever happens.
+. Take care not to disclose information beyond what the user is authorized for. For example don't respond with 403 when a request is not authorized because the user now knows that this resource is actually present. This might be useful information. It might be better to just indicate that that resource is not there for the user: so respond with a `NOT FOUND 404`.
+
+https://restfulapi.net/http-status-codes/[Use HTTP status codes like this].
+
+.When the status code means that something went wrong, it is helpful when the body of the response contains information why:
+* A title
+* HTTP status code + name
+* A list of messages
+* A ticket number (that may be used to trace message in some backend logging system)
+* A date and time
+
+.Pay extra attention to: 
+* https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401["401 Unauthorized"] which should read "401 Unauthenticated".
+* https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403["403 Forbidden"] which should indicate that a user is not authorized for this request.
+
+=== Use HTTP methods properly
+
+Using a RESTful API means that some client issues HTTP requests on resources.
+One of the components that goes into a request is an https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods[HTTP method].
+
+.It must be possible to issue requests repeatedly for all HTTP methods except POST and PATCH:
+* PUT: Changing a resource multiple times will have the resource in that newly defined _state_, no matter how many times executing that request.
+  ** Note that when the client is allowed to create the identifier for the resource, repeatedly executing a PUT is possible. Only the first time, the resource will be created (HTTP status code is 202: Created, thereafter 200: OK). If using PUT in an idempotent way is not possible, then the appropriate HTTP status code should be returned.
+* DELETE: A resource that is deleted will, when a request is fired again, stay deleted.
+* GET: A resource that was fetched, may be fetched again (unless it is deleted by another request, of course).
+
+NOTE: This means that PUT, DELETE and GET should always be https://en.wikipedia.org/wiki/Idempotence[idempotent]. Only GET makes sure that nothing is changed.
+
+.On the other hand, when trying to a apply POST or PATCH may or may not succeed:
+* POST: A new resource is created. The reponse contains the full URL to the newly created resource.
+* PATCH: Some part of a resource is modified. This may involve looking at the https://objectpartners.com/2015/06/02/etags-and-spring-data-rest/[ETag value which is used in a header If-Match] that indicates that the PATCH can only applied when the resource is in some _state_ defined by the ETag value.
+
+
+.HTTP method applied to 1 resource
+|===
+| Method name | Use when | Must be idempotent? | Response
+
+| https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET[GET]
+| Getting a resource
+| yes
+| Status code "200 OK" and a body that contains the representation of one resource.
+| https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD[HEAD]
+| Same as GET, but without response body.
+| yes
+| Status code "200 OK" and a body that contains the representation of one resource.
+| https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST[POST]
+| Creating a resource
+| no
+| Status code "201 Created" header `Location` with the URL pointing at the newly created resource.
+| https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PUT[PUT]
+| Updating an existing resource
+| yes
+| Status code "200 OK" and a body that contains the representation of one resource.
+| https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PUT[PUT]
+| Creating one resource when the ID is generated client-side (which is rarely the case).
+| yes
+| Status code "201 Created" and header `Location` with the URL pointing at the newly created resource.
+| https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE[DELETE]
+| Deleting a resource
+| yes
+| Status code "200 OK". When trying to again DELETE or GET the resource thereafter, the response must be a 404. But maybe this resource can now be found using a different URL.
+| https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PATCH[PATCH]
+| Partly update a resource. This is like using PUT to update but only part of the data is send in the request.
+| no
+| Status code "200 OK".
+|===
+The column _Idempotent?_ in the table above indicates that this request must be idempotent.
+However, a _PATCH_ and _POST_ request may be idempotent as well. They are just not expected to be idempotent.
+
+
+== Versioning
+
+Do not version your REST API. Using hypermedia properly, a client should automatically discover how to use an API.
+Then no versioning is required, because it will never break.
+
+.Reality is not so simple:
+* Do not include a version number in the URL. There is no place in the URL for a version number.
+* Instead, use a version number as part of the content type in the `Accept` header.
+
+  Accept: Content-Type:application/json;version=1
+
+.When you really must make breaking changes, make sure that:
+. The default version is always the latest. When client does not specify any version number, this version is applied to the request.
+. You have a grace period during which the older version is supported as well so clients can migrate their client code.
+. Only use one number that is simply incremented with each change. You will only create a new version when there are breaking changes, so one level is enough.
+
+== Alternatives to RESTful APIs over HTTP
+
+Many alternatives for REST over HTTP exist.
+
+* https://jsonapi.org/
+  ** https://nordicapis.com/the-benefits-of-using-json-api/
+* https://www.jsonrpc.org/
+* https://grpc.io/
+* https://en.wikipedia.org/wiki/SOAP
+* https://graphql.org/ and https://goodapi.co/blog/rest-vs-graphql
+
+When you know how to properly implement a RESTful API, it will be https://goodapi.co/blog/rest-vs-graphql[less complex, but also less flexible than GraphQL]. 
+
+== Examples
+
+=== Status update
+
+Many systems contain some kind of approval flow.
+A resource contains a status field, or some resource flows through some steps from _draft_ to _initial_ and then on to _approved_.
+
+Considering that status some resource, for example `article`, that is accessible via a URL like
+
+            https://somedomain.com/api/article
+
+.To create that article a POST can be performed:
+* URL: `\http://somedomain/com/api/article`
+* body: `{ "name": "a name", "content": "the content", "status": "DRAFT" }`
+
+The response would have a `Location` header indicating the new URL to the resource. This can be used in subsequent requests.
+
+.Now, to update the status a PUT could be used. PUT requires that the resources is sent as a whole:
+* URL: `\http://somedomain/com/api/article/1234`
+* body: `{ "name": "a name", "content": "the content", "status": "INITIAL" }`
+
+When implementing the endpoint with PUT it must be idempotent, so invoking it many times should be possible.
+
+.The HTTP status code in the response, however, may be different:
+. "200 OK": The status has changed.
+. "409 Conflict": The status already was changed. The status on the server side has not changed.
+. "409 Conflict": The status already was changed. The status on the server side has not changed.
+. etc..
+
+Since the resource "status" is already present, POST must not be used here.
+
+.PATCH, however, can be used here to reduce the amount of data sent:
+* URL: `\http://somedomain/com/api/article`
+* body: `{ "status": "INITIAL" }`
+
+Now, many users may use clients that may view the older version of the resource when the status was already updated on the server.
+When one of the other users than make a request to update the status as well, what will happen?
+
+In order to make the client software indicate what state it expected the resource to be when the request was made, an _entity tag_ can be used.
+This is some value that indicates what state a resource is in and can be part of a response header.
+It might contain a hash that was calculated over all the fields (or the JSON representation). Or it might be https://sookocheff.com/post/api/optimistic-locking-in-a-rest-api/[the optimistic locking] value that should match the version of the resource before applying an update.
+
+.This value can then be used in a PUT or PATCH request to tell the server that this request should only be performed if the resource indeed has that expected state:
+* PATCH on URL: `\http://somedomain/com/api/article`
+* Header: `If-Match: "version=2"`
+* body: `{ "status": "INITIAL" }`
+
+.The HTTP status code in the response, when this request is repeated:
+. "200 OK": The status has changed.
+. "412 Precondition Failed": The status already was changed. The status on the server side has not changed.
+
+After the response "200 OK" was recieved, the status of the resource was changed from "DRAFT" into "INITIAL".
+
+.When trying to perform this request:
+* PUT or PATCH on URL: `\http://somedomain/com/api/article`
+* Header: `If-Match: "version=3"`
+* body: `{ "status": "INITIAL" }`
+
+Since the value in `If-Match` and status don't add up, the status code in the response should, again, be 412.
+In this case the PATCH request is idempotent.
+
+The benefit of using an ETag combined with the If-Match is that the expected preconditions can be precisely indicated in the request.
+
+=== Bulk update
+
+TIP: Questions to ask yourself:_Do you really have to do things in bulk? Isn't this premature optimization?_
+
+If you are sure that you require this, consider to make an endpoint that maps to a batch or bundle.
+Problem is that changing many things at once does not really fit a REST API.
+Creating a noun like `batch` for it will make it more RESTful.
+
+=== Security sensitive data in GET query params
+
+TIP: Question to ask yourself: What are you afraid of? Of course you're using HTTP with https://en.wikipedia.org/wiki/Transport_Layer_Security[TLS], so only the user's browser and the backend can see this data.
+
+.If you really don't like this data in the URL's query parameters, consider:
+* X-HTTP-Method-Override.
+* Putting the query parameters in a HTTP header.
+* Not using RESTful APIs.
+
+== References
+
+.More structure in REST?:
+* https://json-schema.org/[JSON Schema]
+* http://json-ld.org[JSON for Linking Data] 
+* https://dzone.com/articles/restful-apis-and-media-types[RESTful APIs and Media-Types]
+* http://amundsen.com/media-types/collection/
+* https://github.com/kevinswiber/siren[Siren: a hypermedia specification for representing entities]
+* https://schema.org/[schemas for structured data on the Internet, on web pages, in email messages, and beyond]
+
+https://bitworking.org/news/2006/03/Hi_REST__Lo_REST_and_Everything_in_between_REST
+
+.Critique:
+* https://evertpot.com/rest-is-in-the-eye-of-the-beholder/
+
+.ETag and If-Match:
+* https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
+* https://www.logicbig.com/tutorials/spring-framework/spring-web-mvc/spring-etag-header.html
+
+* http://hyperrest.github.io/
+* https://developer.mozilla.org/en-US/docs/Glossary/REST
