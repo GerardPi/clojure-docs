@@ -178,8 +178,8 @@ NOTE: This means that PUT, DELETE and GET should always be https://en.wikipedia.
 * POST: A new resource is created. The reponse contains the full URL to the newly created resource.
 * PATCH: Some part of a resource is modified. This may involve looking at the https://objectpartners.com/2015/06/02/etags-and-spring-data-rest/[ETag value which is used in a header If-Match] that indicates that the PATCH can only applied when the resource is in some _state_ defined by the ETag value.
 
+==== HTTP method applied to 1 resource
 
-.HTTP method applied to 1 resource
 |===
 | Method name | Use when | Must be idempotent? | Response
 
@@ -213,8 +213,45 @@ NOTE: This means that PUT, DELETE and GET should always be https://en.wikipedia.
 | Status code "200 OK".
 |===
 The column _Idempotent?_ in the table above indicates that this request must be idempotent.
-However, a _PATCH_ and _POST_ request may be idempotent as well. They are just not expected to be idempotent.
+However, a _PATCH_ and _POST_ request are allowed to be idempotent as well. They are just not expected to be idempotent.
 
+==== HTTP method applied to a resource collection
+
+|===
+| Method name | Use when | Must be idempotent? | Response
+
+| https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET[GET]
+| Getting a resource
+| yes
+| Status code "200 OK" and a body that contains the representation of one resource.
+| https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD[HEAD]
+| Same as GET, but without response body.
+| yes
+| Status code "200 OK" and a body that contains the representation of one resource.
+| https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST[POST]
+| Creating a resource
+| no
+| Status code "201 Created" header `Location` with the URL pointing at the newly created resource.
+| https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PUT[PUT]
+| Updating an existing resource
+| yes
+| Status code "200 OK" and a body that contains the representation of one resource.
+| https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PUT[PUT]
+| Creating one resource when the ID is generated client-side (which is rarely the case).
+| yes
+| Status code "201 Created" and header `Location` with the URL pointing at the newly created resource.
+| https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE[DELETE]
+| Deleting a resource
+| yes
+| Status code "200 OK". When trying to again DELETE or GET the resource thereafter, the response must be a 404. But maybe this resource can now be found using a different URL.
+| https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PATCH[PATCH]
+| Partly update a resource. This is like using PUT to update but only part of the data is send in the request.
+| no
+| Status code "200 OK".
+|===
+
+The column _Idempotent?_ in the table above indicates that this request must be idempotent.
+However, a _PATCH_ and _POST_ request are allowed to be idempotent as well. They are just not expected to be idempotent.
 
 == Versioning
 
@@ -266,13 +303,8 @@ The response would have a `Location` header indicating the new URL to the resour
 * URL: `\http://somedomain/com/api/article/1234`
 * body: `{ "name": "a name", "content": "the content", "status": "INITIAL" }`
 
-When implementing the endpoint with PUT it must be idempotent, so invoking it many times should be possible.
-
-.The HTTP status code in the response, however, may be different:
-. "200 OK": The status has changed.
-. "409 Conflict": The status already was changed. The status on the server side has not changed.
-. "409 Conflict": The status already was changed. The status on the server side has not changed.
-. etc..
+When implementing the endpoint with PUT it must be idempotent, so invoking it many times should be possible without further consequences.
+The HTTP status code in the response, however, may be different for each request.
 
 Since the resource "status" is already present, POST must not be used here.
 
@@ -292,9 +324,13 @@ It might contain a hash that was calculated over all the fields (or the JSON rep
 * Header: `If-Match: "version=2"`
 * body: `{ "status": "INITIAL" }`
 
-.The HTTP status code in the response, when this request is repeated:
-. "200 OK": The status has changed.
-. "412 Precondition Failed": The status already was changed. The status on the server side has not changed.
+.The HTTP status code in the response, after each invocation:
+. "204 No Content": The status has changed. If a message must be in the response, use "200 OK" instead.
+. "412 Precondition Failed": Possibly with a message _The status already was changed. The status on the server side has not changed._
+. "412 Precondition Failed": Possibly with a message _The status already was changed. The status on the server side has not changed._
+. "412 Precondition Failed": Possibly with a message _The status already was changed. The status on the server side has not changed._
+. ...
+For each of the responses above, a header `Content-Location` indicates the URI of the resource. And an `ETag` header contains a value for the current state.
 
 After the response "200 OK" was recieved, the status of the resource was changed from "DRAFT" into "INITIAL".
 

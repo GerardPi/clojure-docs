@@ -6,7 +6,7 @@
 
 Just a bunch of keyboard shortcuts.
 
-=== 
+== Generic 
 
 Note that this table does not include standard XFCE4 keyboard shortcuts.
 
@@ -42,7 +42,6 @@ Note that this table does not include standard XFCE4 keyboard shortcuts.
 | open terminal
 |===
 
-* ..-x = hold the .. key (⊞, ctrl, alt or ⌘) and press the key key after the hypen as indicated in the table
+* ..-x = hold the .. key (⊞, ctrl, alt or ⌘) and press the x key after the hypen as indicated in the table
 * ⊞ = Windows key (aka Super)
 * ⌘ = Cmd key (Mac OSX)
-

@@ -11,9 +11,10 @@ This reason for this document is mainly for myself so I don't have to remember a
 
 . State and identity are not conflated
   ** Usually everything you do in Clojure is immutable
-  ** That is usually not a problem thanks to structural sharing
-  ** When mutability really is required (no place oriented programming)
-  ** When you must have mutable stuff, it can be managed really well:
+    *** That is usually not a problem thanks to structural sharing
+    *** When mutability really is required (no place oriented programming)
+    *** It means that usually a location in memory holding a location will not be changed after it is allocated. https://medium.com/dailyjs/the-state-of-immutability-169d2cd11310[Place Oriented Programming] is a form of https://en.wikipedia.org/wiki/Program_optimization#When_to_optimize[premature optimization].
+  ** When you must have mutable stuff, that state  can be managed really well:
      *** Atoms
      *** Agents
      *** Refs and Software Transactional Memory
@@ -48,13 +49,20 @@ Downside of Clojure: it's pretty strange coming from any mainstream imperative p
 . https://github.com/vspinu/commix
 
 Some thoughts on Component and Mount:
-https://yogthos.net/posts/2016-01-19-ContrastingComponentAndMount.html
+https://yogthos.net/posts/2016-01-19-ContrastingComponentAndMount.html/
 An application that used both Mount and Integrant:
 https://github.com/serioga/webapp-clojure-2020
 
 
 == References
 
+. Excellent introduction to Clojure:  https://grison.me/2020/04/04/starting-with-clojure/
+. Building a Drug Dealer API
+  .. https://medium.com/@shivekkhurana/learn-clojure-by-building-a-drug-dealer-api-part-1-83bd4adb9946
+  .. https://medium.com/@shivekkhurana/learn-clojure-by-building-a-drug-dealer-api-part-2-de8c47512a71
+  .. https://medium.com/@shivekkhurana/learn-clojure-by-building-a-drug-dealer-api-part-3-endgame-b12717164574
+  
+. Much informatio nabout Clojure cli tools
 . Hosted on the JVM: https://www.clojure.org
   ** https://clojure.org/api/cheatsheet
 . Hosted by JavaScript: https://clojurescript.org
@@ -71,3 +79,4 @@ https://github.com/serioga/webapp-clojure-2020
   https://clojuredays.org/
 . https://www.clojure-toolbox.com/
 . https://practicalli.github.io/
+    ** https://practicalli.github.io/spacemacs/evaluating-clojure/
