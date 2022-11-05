@@ -61,8 +61,7 @@ https://github.com/serioga/webapp-clojure-2020
   .. https://medium.com/@shivekkhurana/learn-clojure-by-building-a-drug-dealer-api-part-1-83bd4adb9946
   .. https://medium.com/@shivekkhurana/learn-clojure-by-building-a-drug-dealer-api-part-2-de8c47512a71
   .. https://medium.com/@shivekkhurana/learn-clojure-by-building-a-drug-dealer-api-part-3-endgame-b12717164574
-  
-. Much informatio nabout Clojure cli tools
+. https://betweentwoparens.com/what-are-the-clojure-tools[Much informatio nabout Clojure cli tools]
 . Hosted on the JVM: https://www.clojure.org
   ** https://clojure.org/api/cheatsheet
 . Hosted by JavaScript: https://clojurescript.org
@@ -80,3 +79,4 @@ https://github.com/serioga/webapp-clojure-2020
 . https://www.clojure-toolbox.com/
 . https://practicalli.github.io/
     ** https://practicalli.github.io/spacemacs/evaluating-clojure/
+    ** https://practicalli.github.io/blog/posts/clojure-web-server-cli-tools-deps-edn/

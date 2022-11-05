@@ -1,0 +1,23 @@
+{:description "https://grison.me/2020/04/04/starting-with-clojure/"
+ :paths       ["resources" "src"]
+ :deps        {org.clojure/clojure            {:mvn/version "1.10.1"}
+               org.clojure/tools.logging      {:mvn/version "1.0.0"}
+               ch.qos.logback/logback-classic {:mvn/version "1.2.3"}
+               nrepl/nrepl                    {:mvn/version "0.5.3"}}
+ :aliases     {:test      {:main-opts   ["-m" "kaocha.runner"]
+                           :extra-paths ["test"]
+                           :extra-deps  {lambdaisland/kaocha {:mvn/version "1.0-612"}}}
+               :kondo     {:main-opts  ["-m" "clj-kondo.main" --lang "clj" --lint "src"]
+                           :extra-deps {clj-kondo {:mvn/version "2020.04.05"}}}
+               :fmt-fix   {:main-opts  ["-m" "cljfmt-runner.fix"]
+                           :extra-deps {com.jameslaverack/cljfmt-runner
+                                        {:git/url "https://github.com/JamesLaverack/cljfmt-runner"
+                                         :sha     "97960e9a6464935534b5a6bab529e063d0027128"}}}
+               :fmt-check {:main-opts  ["-m" "cljfmt-runner.check"]
+                           :extra-deps {com.jameslaverack/cljfmt-runner
+                                        {:git/url "https://github.com/JamesLaverack/cljfmt-runner"
+                                         :sha     "97960e9a6464935534b5a6bab529e063d0027128"}}}
+               :kibit     {:main-opts  ["-m" "kibit-runner.cmdline"]
+                           :extra-deps {tvaughan/kibit-runner {:mvn/version "1.0.1"}}}
+               :fatjar    {:main-opts  ["-m" "uberdeps.uberjar" "--target" "target/shout-0.1.jar"]
+                           :extra-deps {uberdeps {:mvn/version "0.1.10"}}}}}
