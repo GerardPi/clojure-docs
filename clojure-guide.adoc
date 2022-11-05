@@ -1,0 +1,704 @@
+= Clojure Guide
+:numbered:
+:toc:
+:icons: font
+
+== Introduction
+
+This document is based on https://kozieiev.com/blog/creating-and-publishing-clojure-libraries/[this article] written by Volodymyr Kozieiev.
+
+This document assumes that you're using a Linux or MacOS environment.
+It assumes that you know a bit about the command line on these systems and have some programming experience.
+
+Clojure in this document focuses on Clojure on the JVM.
+However, there are some alternative platforms that it can run on.
+
+TIP: In this document, blocks of text written in a `monospaced font` indicate what is entered from the command-line. Lines that start with a `$` are usually what is typed in from the command-line and the lines that do not start with a `$` are the output that results from that command.
+
+== Clojure Tools (JVM)
+
+Clojure, as you can find it on https://clojure.org/releases/downloads/
+comes with a _Command Line Interface_ (CLI).
+The CLI is a _Read-Evaluate-Print Loop_ (REPL) programming environment.
+It allows you to interact with a running Clojure program and modify it, bit by bit.
+
+.The following main bits are provided:
+. `clj` and `clojure` are executables that you invoke to run Clojure code.
+. `tools.deps` is a library that works behind the scenes to manage dependencies and to create classpaths.
+. `deps.edn` configuration files that you create to customize work of `clj`, `clojure` and `tools.deps`.
+
+The above functionality is available since 2019.
+Alternatives for this,
+that have been around for many years now are https://leningen.org and https://boot-clj.github.io.
+The focus in this document will be on the tooling provided with Clojure.
+
+=== Difference between `clj` and `clojure` executables
+
+Both `clj` and `clojure` are scripts, and `clj` is just a wrapper on `clojure`.
+
+The location of `clj` can be found using _unix_ command-line utility `which`:
+
+[source,bash]
+----
+$ which clj
+/usr/local/bin/clj
+----
+
+And examine its content:
+
+[source,shell]
+----
+$ cat /usr/local/bin/clj
+#!/usr/bin/env bash
+...
+  exec rlwrap -r -q '\"' -b "(){}[],^%#@\";:'" "$bin_dir/clojure" "$@"
+...
+----
+
+Behind the scenes, `clj` wraps a call to `$bin_dir/clojure` with the `rlwrap` tool.
+`rlwrap` provides a better command-line editing experience.
+
+When `clojure` is run without arguments, REPL will be started.
+Try to type something in it, and press up/down/left/right keyboard keys.
+
+[source,shell]
+----
+$ clojure
+Clojure 1.10.3
+user=>(+ 1 2) ^[[A^[[B^[[D^[[C
+----
+
+Using the arrow keys does not work as expected when using `clojure`.
+
+However, when using `clj` instead, you will be able to use left/right keys to navigate the typed text, and up/down to navigate the call's history.
+This is exactly the function provided by rlwrap.
+
+From the command-line, you'll probably only use `clj` later in the article.
+
+== Most usable `clj` options:
+
+`-M` and `-X` are the most important options, and the ones you need to learn first.
+
+=== `-M` option to work with `clojure.main` namespace
+
+Invoking `clj` with the `-M` option gives you access to functionality from the `clojure.main` namespace.
+All arguments after `-M` will be passed to the `clojure.main/main` and interpreted by it.
+To see all available options of `clojure.main`, you can run:
+
+[source,shell]
+----
+$ clj -M --help
+----
+
+Or take a look at
+https://clojure.org/reference/repl_and_main[official documentation].
+
+==== Running `(-main)` function from namespace
+
+The most common usage of `clj -M` is to run the entry point of your clojure code.
+To do this, you should pass `-m` namespace-name options to the clojure.main.
+It will find the specified namespace, and invoke its `(-main)` function.
+
+.For example, if you have the following project directory structure:
+----
+	project-dir     	  	 (project directory)
+		src            		 (default sources directory)
+	   		core.clj
+----
+
+With the `core.clj` file:
+
+[source,clojure]
+----
+(ns core)
+
+(defn -main []
+  (println "(-main) invoked"))
+----
+
+Running `core/main` from the project-dir directory looks like this:
+
+[source,shell]
+----
+$ clj -M -m core
+(-main) invoked
+----
+
+==== Running clojure file as a script
+
+`clojure.main` also allows running Clojure file as a script.
+To do this via CLI, you should use the command, `clj -M /path/to/script/file.clj arg1 arg2 arg3`.
+An arbitrary number of arguments passed after script path will be available in a script under `*command-line-args*` var.
+If you have a script.clj file:
+
+[source,clojure]
+----
+(println "Script invoked with args: " *command-line-args*)
+----
+
+Calling it will give you:
+
+[source,shell]
+----
+$ clj -M script.clj 1 2 3
+Script invoked with args:  (1 2 3)
+----
+
+=== `-X` option to run specific functions
+
+`(-main)` is not the only function you can run via CLI.
+You can run any other one using the `-X` option as long as this function takes a map as an argument.
+The command should look like this:
+
+[source,shell]
+----
+clj -X namespace/fn [arg-key value]*
+----
+
+With file `core.clj`
+
+[source,clojure]
+----
+(ns core)
+
+(defn print-args [arg]
+  (println "print-args function called with arg: " arg))
+----
+
+If `core.clj` is located in your _project-dir_`/src`, you can call `(print-args)` using CLI from the project-dir folder:
+
+[source,shell]
+----
+$ clj -X core/print-args :key1 value1 :key2 value2
+print-args function called with arg:  {:key1 value1, :key2 value2}
+----
+
+Key-value pairs specified after the function name will be passed to the function as a map.
+
+== `deps.edn` configuration files
+
+There are a few files with the name deps.edn. One in the clj installation itself. 
+You can also have another one in the `$HOME/.clojure` folder to keep the common settings for all your projects.
+And, of course, you can create one in your project directory with project-specific settings.
+All of them store configuration settings in clojure maps.
+
+When `clj` is invoked, it merges them all to create a final configuration map.
+You can read more about locations of different `deps.edn` files in official documentation.
+
+Later in this article, I will mostly talk about `deps.edn` that you create in a project directory.
+
+The most important keys in the configuration map are `:deps`, `:paths`, and `:aliases:`.
+
+=== `:paths` key
+
+Under the `:path` key, you specify the vector of directories where source code is located.
+
+If the `deps.edn` file doesn't exist in your project folder, or it doesn't contain the `:path` key,
+`clj` uses the src folder by default.
+
+For example, if you have the following directory structure:
+
+----
+	project-dir        
+		src             
+			core.clj
+		test  
+			test_runner.clj
+----
+
+.With `core.clj`:
+[source,clojure]
+----
+(ns core)
+
+(defn -main []
+  (println "(-main) invoked"))
+----
+
+.And `test_runner.clj`:
+[source,clojure]
+----
+(ns test-runner)
+
+(defn run [_]
+  (println "Running tests.."))
+----
+
+.You can run something from `core.clj` because it is in the `src` folder:
+
+[source,shell]
+----
+$ clj -M -m core
+(-main) invoked
+----
+
+But an attempt to run `test-runner/run` will fail. The test-runner namespace from thetest folder isn't available:
+
+[source,shell]
+----
+$ clj -X test-runner/run
+Execution error (FileNotFoundException) at clojure.run.exec/requiring-resolve' (exec.clj:31).
+...
+----
+
+To fix this, add the `deps.edn` file at the root of your project-dir,
+and put a vector of all source folders under the `:paths` key:
+
+[source,clojure]
+----
+{:paths ["src" "test"]}
+----
+
+Now the content of the test folder is visible to `clj`:
+
+[source,shell]
+----
+$ clj -X test-runner/run
+Running tests..
+----
+
+Note, that you should specify both the src and test folders under the `:paths` key.
+
+=== `:deps` key
+
+Under the `:deps` key, you can place a map of external libraries that your project relies on.
+Libraries will be downloaded along with their dependencies, and become available for use.
+
+Dependencies can be taken from the Maven repository, git repository, or local disk.
+
+For Maven dependencies, you should specify their version.
+
+.By default, two Maven repos are used for the search:
+* https://repo1.maven.org/maven2/
+* https://clojars.org/repo
+
+For Git dependencies, you should specify `:git/url` with the repo address, and the `:git/sha` or :`git/tag` keys to specify the library version.
+
+Let's declare deps.edn like this:
+
+[source,clojure]
+----
+{:paths ["src" "test"]
+ :deps {com.taoensso/timbre              {:mvn/version "5.1.2"}
+	io.github.cognitect-labs/test-runner
+			{:git/url "https://github.com/cognitect-labs/test-runner.git"
+			 :git/sha     "705ad25bbf0228b1c38d0244a36001c2987d7337"}}}
+----
+
+
+.When clj is invoked, two libraries will be available in our code:
+* timbre logging library which artifacts taken from Maven, and
+* test-runner, taken from GitHub.
+
+From `core.clj`, `timbre` now can be used after importing its namespace:
+
+[source,clojure]
+----
+(ns core
+  (:require [taoensso.timbre :as log]))
+
+(defn -main []
+  (log/info "Logged with taoensso.timbre"))
+----
+
+And test-runner main function can be invoked by clj with already known -M switch:
+
+[source,shell]
+----
+$ clj -M -m cognitect.test-runner
+Running tests in #{"test"}
+
+Testing user
+
+Ran 0 tests containing 0 assertions.
+0 failures, 0 errors.
+----
+
+More details on how to use local dependencies and meaning of different keys can be found in official documentation.
+
+=== `:aliases` key
+
+The _alias_ is the main concept in `deps.edn`.
+It is where concentrates all convenience of clj tool.
+Let's explore it with examples.
+
+==== Aliases for `clj -M`
+
+So far, we've been using clj with the `-M` option to run the `(-main)` function in a specified namespace.
+Let's imagine that our project has two different entry namespaces with `(-main)` functions.
+One is used for development and one for production. Our project folder looks like this:
+
+----
+	project-dir        
+		src             
+			dev
+		 		core.clj
+		   	prod
+				core.clj
+----
+
+.The command line for the dev build is:
+[source,shell]
+----
+$ clj -M -m dev.core
+----
+
+.And for prod:
+[source,shell]
+----
+$ clj -M -m prod.core
+----
+
+To minimize typing, we can declare two different aliases in the `deps.edn` file,
+and store all options after `clj -M` under that aliases.
+
+Here is the content of `deps.edn` with two declared aliases `:dev` and `:prod`.
+You can use any keywords as alias names.
+
+[source,clojure]
+----
+	{:aliases {:dev  {:main-opts ["-m" "dev.core"]}
+		   :prod {:main-opts ["-m" "prod.core"]}}}
+----
+
+To invoke an alias, you add its name right after the `-M` option.
+
+.Now, running the dev build using an alias looks like this:
+[source,shell]
+----
+$ clj -M:dev
+----
+
+.It's similar for prod:
+[source,shell]
+----
+	$ clj -M:prod
+----
+
+So, `:aliases` is a key in the deps.edn map where you store a map with user-defined aliases.
+
+Every alias is a key-value pair, where the key is a user-defined name of the alias, 
+and value is a map with pre-defined keys. 
+In the example above, we used `:main-opts`,
+a pre-defined key that keeps a vector of options to be passed to the `clojure.main` namespace.
+
+When clj -M is invoked with an alias, it runs `clojure.main` with arguments taken from :main-opts.
+
+==== Aliases for `clj -X`
+
+We can also create aliases to run specific functions.
+They look pretty much the same as aliases from the example above, but rely on other pre-defined keys.
+
+Let's imagine you have a function for generating reports. 
+It is located in the `db.reports` namespace, named generate.
+
+.The only argument is a map with two possible keys:
+* `:settings` for a map of settings, and
+* `:tables` with a vector of tables for which we want to get reports.
+
+If the `:tables` key is absent, we generate reports for all tables.
+
+Let's make a stub for our `reports.clj`:
+
+[source,clojure]
+----
+(ns db.reports)
+
+(defn generate [{:keys [settings tables]}]
+  (println "generated report with settings:" settings "for tables:" (if tables tables "all")))
+----
+
+To run reports for all tables from the command line, we can invoke:
+
+[source,shell]
+----
+clj -X db.reports/generate '{:settings {:brief true}}'
+generated report with settings: {:brief true} for tables: all
+----
+
+For orders and users tables:
+
+[source,shell]
+----
+$ clj -X db.reports/generate '{:settings {:brief true} :tables ["users" "orders"]}'
+generated report with settings: {:brief true} for tables: [users orders]
+----
+
+Since typing all arguments in the command line is quite tedious, let's create aliases in `deps.edn`:
+
+[source,clojure]
+----
+{:aliases {:generate-all  {:exec-fn   db.reports/generate
+			   :exec-args {:settings {:brief true}}}
+	   :generate-some {:exec-fn   db.reports/generate
+			   :exec-args {:settings {:brief true}
+					   :tables   ["users" "orders"]}}}
+}
+----
+
+Now you can generate reports more conveniently:
+
+[source,shell]
+----
+$ clj -X:generate-all
+generated report with settings: {:brief true} for tables: all
+
+clj -X:generate-some
+generated report with settings: {:brief true} for tables: [users orders]
+----
+
+As you probably noticed, the pre-defined key `:main-opts` pre-defined key is not used,
+because that works only with `clj -M`.
+Instead, key `:exec-fn` is used to specify the namespace/function to run,
+and key `:exec-args` to pass arguments map.
+
+When trying to run with one of these aliases with `clj -M`,
+you will see a REPL started instead of the invoked function.
+This is because clj starts `clojure.core` when it sees the -M option, and since there is no `:main-opts` key,
+it won't pass any arguments to it.
+
+And `clojure.core` invoked without arguments will simply start REPL.
+
+[source,shell]
+----
+	$ clj -M:generate-some
+	Clojure 1.10.3
+	user=> 
+----
+
+There are pre-defined keys common to the -X and -M options, but we will discuss them later.
+
+== `tools.deps` library
+
+When clj runs clojure programs, it runs a JVM process and needs to pass a classpath to it. 
+Classpath is a list of all paths where java should look for classes used in your program, including classes for your dependencies. 
+So to build a classpath, all dependencies should be resolved first.
+
+Both these tasks, resolving dependencies and creating a classpath, 
+is done by the `tools.deps` library that goes with Clojure. `clj` calls `tools.deps` internally.
+
+Two main functions in `tools.deps` that resolve and build classpaths are (resolve-deps) and (make-classpath-map), respectively.
+
+Let's take a look at their work and arguments:
+
+image::clojure-tools-image-01-classpath-building.png[Classpath building process]
+
+=== Managing dependencies
+
+`(resolve-deps)` is the first one that comes into play.
+As a first argument, it takes a list of dependencies declared in a top-level `:deps` key of deps.edn.
+And as a second argument, map of pre-defined keys taken from an alias that you used when launched clj.
+
+`:extra-deps` allows you to add dependencies only when a particular alias is invoked.
+For example, you don't need to use the test-runner dependency, unless you are running a test.
+So you can put it in an alias under `:extra-deps`:
+
+[source,clojure]
+----
+{:deps    {org.clojure/clojure {:mvn/version "1.10.3"}}
+ :aliases {:test
+				{:extra-deps {io.github.cognitect-labs/test-runner
+						{:git/url "https://github.com/cognitect-labs/test-runner.git"
+						 :git/sha     "705ad25bbf0228b1c38d0244a36001c2987d7337"}}
+				 :main-opts  ["-m" "cognitect.test-runner"]}}}
+----
+
+.Other keys that can be used in an alias on this step are:
+. `:override-deps`: overrides the library version chosen by the version resolution to force a particular version instead.
+. `:default-deps`: provides a set of default versions to use.
+. `:replace-deps`: a map from libs to versions of dependencies that will fully replace the project :deps.
+
+When invoked, `(resolve-deps)` will combine the original list of dependencies with modifications provided in aliases,
+resolve all transitive dependencies, download required artifacts, 
+and will build a flat libraries map of all dependencies needed for current invokation.
+
+Since the step _managing dependencies_ happens at any kind of clj invocation,
+pre-defined keys `:extra-deps`, `:override-deps` and `:default-deps` can be used with any clj option we described before.
+
+=== Building classpath
+
+.After the libraries map is created, the classpath building function comes into play. `(make-classpath-map)` takes three arguments:
+.    libraries map that is a result of the `(resolve-deps)` step.
+.    content of `:paths` key in deps.edn map.
+.    map of pre-defined keys `:extra-paths`, `:classpath-overrides` and `:replace-paths` taken from executed alias.
+
+`:extra-paths` allows you to add new paths when a specific alias is invoked. For example, 
+if you have source code for all the tests in a specific test folder, 
+you can include it in a dedicated alias and not include it in other builds. 
+
+`deps.edn` will look similar to this:
+
+[source,clojure]
+----
+{:paths ["src"]
+ :aliases {:test
+				{:extra-paths ["test"]
+				 :main-opts   ["-m" "cognitect.test-runner"]}}}
+----
+
+.Other pre-defined keys for this stage are:
+. `:classpath-overrides` specifies a location to pull a dependency that overrides the path found during dependency resolution; for example, to replace a dependency with a local debug version.
+
+		{:classpath-overrides
+		 {org.clojure/clojure "/my/clojure/target"}}
+
+. `:replace-paths:` a collection of string paths that will replace the ones in a `:paths` key.
+
+
+== Running REPL with `clj -A`
+
+There is one more clj option that can work with aliases that we haven't talked about yet.
+
+`clj -A` runs REPL. If you invoke it with some alias, it will take into account all dependency-related and path-related 
+predefined keys mentioned in the alias.
+There are no pre-defined keys that are specific only to the -A option.
+
+Let's say we have the following project structure:
+
+----
+	project-dir        
+		src             
+			core.clj
+		test  
+	   		test_runner.clj
+----
+
+.With `core.clj`:
+[source,clojure]
+----
+(ns core)
+
+(defn print-hello []
+  (println "Hello from core"))
+----
+
+.`test_runner.clj`:
+[source,clojure]
+----
+(ns test-runner
+  (:require [taoensso.timbre :as log]))
+
+(defn print-hello []
+  (log/info "Hello from test-runner"))
+----
+
+.And `deps.edn`:
+[source,clojure]
+----
+{:paths ["src"]
+ :aliases {:test  {:extra-deps  {com.taoensso/timbre {:mvn/version "5.1.2"}}
+		   :extra-paths ["test"]}}}
+----
+
+If we start a REPL with the clj command, we will be able to run something from core, 
+but won't be able to reach `test-runner`, because test folder is not in the `:paths` key of deps.edn:
+
+[source,shell]
+----
+$ clj
+Clojure 1.10.3
+user=> (require '[core :as c])
+nil
+user=> (core/print-hello)
+Hello from core
+nil
+user=> (require '[test-runner :as tr])
+Execution error (FileNotFoundException) at user/eval151 (REPL:1).
+Could not locate test_runner__init.class, test_runner.clj or test_runner.cljc on classpath. Please check that namespaces with dashes use underscores in the Clojure file name.
+----
+
+But if we run `clj -A:test`, there won't be an error, because the `:extra-paths` key in the alias adds a test folder.
+Also, note that test-runner can use the `taoensso.timbre` library because that lib is listed in `:extra-deps`.
+
+[source,shell]
+----
+clj -A:test
+Clojure 1.10.3
+user=> (require '[core :as c])
+nil
+user=> (core/print-hello)
+Hello from core
+nil
+user=> (require '[test-runner :as tr])
+nil
+user=> (tr/print-hello)
+2021-09-05T11:12:00.459Z MacBook-Pro.local INFO [test-runner:5] - Hello from test-runner
+----
+
+== Real-world examples
+
+Let's analyze some real-world `deps.edn` files to understand how they work.
+
+=== Cognitect test-runner setup
+
+We already mentioned https://github.com/cognitect-labs/test-runner/[cognitect's test-runner] above. 
+It is a library for discovering and running tests in your project.
+
+Its documentation suggests adding the following alias to your deps.edn:
+
+[source,clojure]
+----
+:aliases {:test {:extra-paths ["test"]
+		 :extra-deps {io.github.cognitect-labs/test-runner
+				  {:git/url "https://github.com/cognitect-labs/test-runner.git"
+				   :git/sha "8c3f22363d63715de4087b038d79ae0de36a3263"}}
+		 :main-opts ["-m" "cognitect.test-runner"]
+		 :exec-fn cognitect.test-runner.api/test}}
+----
+
+.Let's break it down:
+. `:extra-paths` says that clj should consider the _test_ folder to build our classpath when using the:test alias.
+. `:extra-deps` specifies that the test-runner library can be downloaded from GitHub.
+. having `:main-opts` means that we can run tests using `clj -M:test ...args...`. Args description can be found on the documentation page.
+. having `:exec-fn` means that we can also run testing with `clj -X:test args-map`. Args-map description can be found on the documentation page.
+
+=== `clj-new` library setup
+
+The `clj-new` library allows you to generate new projects from templates.
+In contrast to the previous example, this time you suggested adding a new alias globally in `~/.clojure/deps.edn`:
+
+[source,clojure]
+----
+	{:aliases
+	 {:new {:extra-deps  {com.github.seancorfield/clj-new {:mvn/version "1.1.331"}} ;; <1>
+		:exec-fn clj-new/create ;; <2>
+		:exec-args {:template "app"}}}}
+----
+
+<1> `:extra-deps` indicates clj-new can be fetched from a Maven repository.
+<2> `:exec-fn` means that we can run the alias using `clj -X:new`.
+
+By defining an alias in `~/.clojure/deps.edn`,
+you make it available in any folder on your system.
+
+.Then:
+	* You can run something like `clojure -X:new :name myname/myapp` to create `myapp` project.
+	* Arguments `:name myname/myapp` will be put in a map, merged with a map under `:exec-args`, and passed to `clj-new/create` function.
+
+== Other clj capabilities
+
+.`clj` has a other functionality to discover by reading the output of clj `--help`:
+. `clj -Sdescribe` will print environment info. 
+	In the output you can find the `:config-files` key with a list of `deps.edn` files used in the current run.
+. `clj -Spath` will print you the result classpath. 
+	Try running it with different aliases to figure out the impact on the resulting classpath; for example,
+	by running with `:test alias: clj -Spath -A:test`
+
+In _Deps and CLI Reference_ you will find a full explanation of clj capabilities.
+In _Deps and CLI Guide_ you can find a bunch of useful examples of clj and deps.edn usage, like running a socket server remote REPL.
+
+== Conclusion
+
+In this article, we've covered how `clj`, `tools.deps`, and `deps.edn` work together.
+The key concept of _alias_ is explained in different examples.
+Also, the process of building a classpath was reviewed in detail to provide a better understanding of how pre-defined keys from your aliases impact it.
+
+
+== References
+
+. https://kozieiev.com/blog/clojure-cli-tools-deps-deps-edn-guide/
+. https://clojure.org/
+. https://clojure.org/reference/deps_and_cli
+. https://clojure.org/guides/deps_and_cli
+
+
